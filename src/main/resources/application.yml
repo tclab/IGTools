@@ -1,0 +1,26 @@
+
+spring:
+  application:
+    name: igtools
+
+api:
+  graph:
+    name: Graph-Api-Client
+    url: https://graph.facebook.com
+    api-version: v11.0
+    retry:
+      enable: true
+      maxAttempts: 5
+      interval: 1
+  fb-commons:
+    name: Fb-Commons-Api
+    url: http://fb-graph-api-commons.herokuapp.com
+    api-version: v1
+    pss: ${FB_COMMONS_PSS}
+    retry:
+      enable: true
+      maxAttempts: 5
+      interval: 1
+
+post:
+  retries: 3
