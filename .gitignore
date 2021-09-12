@@ -3,6 +3,9 @@ target/
 !**/src/main/**
 !**/src/test/**
 
+.mvn
+mvnw*
+
 ### STS ###
 .apt_generated
 .classpath
@@ -44,7 +47,7 @@ artifact-*
 .artifact-*
 
 ### GitLab caching and Maven dependencies ###
-./black-pearl/
+./IGTools/
 .m2/
 
 # Terraform
