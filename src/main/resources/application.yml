@@ -2,6 +2,33 @@
 spring:
   application:
     name: igtools
+    businessName: Common FB features client
+  datasource:
+    url: "jdbc:postgresql://ec2-54-145-188-92.compute-1.amazonaws.com:5432/d6nuqi6avckvaq"
+    username: dlmvmmuribpdse
+    password: ${DATABASE_PSS}
+    driver-class-name: org.postgresql.Driver
+    hibernate:
+      dialect: org.hibernate.dialect.PostgreSQL94Dialect
+  jpa:
+    show-sql: false
+    properties:
+      javax:
+        persistence:
+          schema-generation:
+            scripts:
+              action: none #none, create, drop, drop-and-create
+              create-target: create.sql
+              create-source: metadata
+              drop-target: drop.sql
+              drop-source: metadata
+      hibernate:
+        generate_statistics: false
+        jdbc:
+          batch_size: 5000
+          fetch_size: 5000
+        order_inserts: true
+        order_updates: true
 
 api:
   graph:
