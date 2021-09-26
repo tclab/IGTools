@@ -14,4 +14,6 @@ public interface AccountService {
 
   ResponseDto deleteAccount(String username);
 
+  AccountDto findById(Long igBusinessAccountId);
+
 }

@@ -1,4 +1,4 @@
-package com.tclab.igtools.commons.fbCommonsClient.service;
+package com.tclab.igtools.commons.fbCommonsClient.service.feign;
 
 import com.tclab.igtools.commons.fbCommonsClient.dto.FbCommonsTokenDto;
 import org.springframework.web.bind.annotation.GetMapping;

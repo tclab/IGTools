@@ -1,4 +1,4 @@
-package com.tclab.igtools.commons.fbCommonsClient.service;
+package com.tclab.igtools.commons.fbCommonsClient.service.feign;
 
 import com.tclab.igtools.commons.fbCommonsClient.config.FbCommonsFeignConfig;
 import org.springframework.cloud.openfeign.FeignClient;

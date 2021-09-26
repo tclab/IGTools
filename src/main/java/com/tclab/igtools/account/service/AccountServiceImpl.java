@@ -49,6 +49,11 @@ public class AccountServiceImpl implements AccountService{
   }
 
   @Override
+  public AccountDto findById(Long igBusinessAccountId) {
+    return AccountDto.fromAccount(accountRepository.getAccountByIgBusinessAccountId(igBusinessAccountId));
+  }
+
+  @Override
   public ResponseDto updateAccount(AccountDto accountDto) {
     try {
       if (!accountRepository.existsById(accountDto.getUsername())) {
