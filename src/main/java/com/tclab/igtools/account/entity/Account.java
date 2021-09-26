@@ -20,9 +20,9 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name = "ACCOUNT")
 @ToString
 @Builder
+@Table(name = "ACCOUNT")
 public class Account {
 
   @Id

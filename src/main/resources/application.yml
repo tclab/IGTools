@@ -48,6 +48,18 @@ api:
       enable: true
       maxAttempts: 5
       interval: 1
+  slack:
+    name: Slack
+    url: https://hooks.slack.com/services
+    api-version: v1
+    pss: ${SLACK_TOKEN}
+    retry:
+      enable: true
+      maxAttempts: 5
+      interval: 1
 
 post:
-  retries: 3
+  media_count: 1000
+  longevity: 120
+  retries: 20
+  caption: "What do you think❓😉🤔...\r\n.\r\n.\r\n.\r\n🛑Credit unknown, DM for credit or removal (no copyright intended)\r\n.\r\n.\r\n.\r\nFOLLOW 👉@woodwork_passion for more!\r\n.\r\n.\r\n.\r\n#woodworkingprojects #woodworkingtool #woodworkz #woodwork_feature #woodworkings #woodworkingplans #woodworkingisfun #woodworkingfun #woodcraft #woodartist #woodworkingmachinery #woodfired #woodcarving"

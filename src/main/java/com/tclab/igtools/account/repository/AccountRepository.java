@@ -8,4 +8,6 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface AccountRepository extends JpaRepository<Account, String>, JpaSpecificationExecutor<Account> {
 
+  Account getAccountByIgBusinessAccountId(Long igBusinessAccountId);
+
 }
