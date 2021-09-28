@@ -75,12 +75,12 @@ public class MediaServiceImpl implements MediaService {
       Post post = postRepository.findFirstByPostedAndIgBusinessAccountIdOrderByLikeCountDesc(false, igBusinessAccountId);
       PostDto postDto = PostDto.fromPost(post,caption);
 
-      // Post resource
-      postResource(postDto);
-
       // Udate posted status in database
       post.setPosted(true);
       postRepository.save(post);
+
+      // Post resource
+      postResource(postDto);
 
       // Send slack message
       AccountDto accountDto = accountService.findById(igBusinessAccountId);
@@ -110,6 +110,7 @@ public class MediaServiceImpl implements MediaService {
       igResponseDto.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
       igResponseDto.setMessage(String.format("Something went wrong creating the post: %s", e.getMessage()));
     }
+
     return igResponseDto;
   }
 
@@ -195,6 +196,10 @@ public class MediaServiceImpl implements MediaService {
     MediaResponseDto igResponseDto = MediaResponseDto.builder().build();
 
     try {
+      // depurate old data
+      log.info("Depurate old data...");
+      postRepository.deleteByTimestampBefore(ZonedDateTime.now().minusDays(longevity));
+
       // Get feed accounts for specified igBusinessAccountId
       log.info("Getting feed accounts...");
       Long igBusinessAccountId = Long.valueOf(hydrateMediaDto.getIgBusinessAccountId());
@@ -253,12 +258,12 @@ public class MediaServiceImpl implements MediaService {
     if (!CollectionUtils.isEmpty(allPosts)) {
       Map<Long, Post> postIds = allPosts.stream().collect(Collectors.toMap(Post::getMediaId, Function.identity()));
       postList = feedAccountMedia.getBusinessDiscovery().getMedia().getData().stream()
-          .filter(data -> !postIds.containsKey(data.getId()) || data.getMedia_type().equals(MediaType.VIDEO.name()))
+          .filter(data -> !postIds.containsKey(data.getId()) || data.getMedia_type().equals(MediaType.VIDEO.name()) )
           .filter(data -> Utils.isNotEmpty(data.getMedia_url()))
           .filter(data -> data.getMedia_type().equals(MediaType.IMAGE.name()) || data.getMedia_type().equals(MediaType.VIDEO.name()))
           .filter(data -> data.getTimestamp().toInstant().isAfter(ZonedDateTime.now().minusDays(longevity).toInstant()))
           .filter(data -> data.getLike_count() > 1000)
-          .map(data -> Post.fromData(data, igBusinessAccountId, accountDto.getUsername(), isPosted(postIds, data.getId())))
+          .map(data -> Post.fromData(data, igBusinessAccountId, accountDto.getUsername(), isPosted(postIds, data.getId()), getCreatedTime(postIds, data.getId())))
           .collect(Collectors.toList());
     }
 
@@ -267,8 +272,14 @@ public class MediaServiceImpl implements MediaService {
     log.info("... {} post processed for account {}", postList.size(), accountDto.getUsername());
   }
 
+  // Get the original posted status in case of video content type
   private boolean isPosted(Map<Long, Post> postsMap, Long postId) {
     return postsMap.containsKey(postId) && postsMap.get(postId).getMediaType()
         .equals(MediaType.VIDEO.name()) && postsMap.get(postId).isPosted();
+  }
+
+  // Get the original posted status in case of video content type
+  private ZonedDateTime getCreatedTime(Map<Long, Post> postsMap, Long postId) {
+    return postsMap.containsKey(postId) ? postsMap.get(postId).getCreated() : ZonedDateTime.now();
   }
 }

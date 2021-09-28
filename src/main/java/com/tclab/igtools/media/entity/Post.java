@@ -50,9 +50,13 @@ public class Post {
   private ZonedDateTime timestamp;
 
   @Column
+  @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss") // example: 2021-06-30T14:39:17+0000 (ISO 8601)
+  private ZonedDateTime created;
+
+  @Column
   private boolean posted;
 
-  public static Post fromData(MediaContentResponseDto.Data data, Long igBusinessAccountId, String username, boolean posted) {
+  public static Post fromData(MediaContentResponseDto.Data data, Long igBusinessAccountId, String username, boolean posted, ZonedDateTime created) {
     return Post.builder()
         .mediaId(data.getId())
         .igBusinessAccountId(igBusinessAccountId)
@@ -63,6 +67,7 @@ public class Post {
         .mediaUrl(data.getMedia_url())
         .timestamp(data.getTimestamp())
         .posted(posted)
+        .created(created)
         .build();
   }
 
