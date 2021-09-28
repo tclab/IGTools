@@ -1,7 +1,5 @@
 package com.tclab.igtools.media.dto;
 
-import com.tclab.igtools.account.dto.AccountDto;
-import com.tclab.igtools.account.entity.Account;
 import com.tclab.igtools.media.entity.Post;
 import lombok.Builder;
 import lombok.Data;
