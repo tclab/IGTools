@@ -198,7 +198,11 @@ public class MediaServiceImpl implements MediaService {
     try {
       // depurate old data
       log.info("Depurate old data...");
-      postRepository.deleteByTimestampBefore(ZonedDateTime.now().minusDays(longevity));
+      try {
+        postRepository.deleteByTimestampBefore(ZonedDateTime.now().minusDays(longevity));
+      } catch (Exception e) {
+        log.error("Error cleaning old posts... ");
+      }
 
       // Get feed accounts for specified igBusinessAccountId
       log.info("Getting feed accounts...");
