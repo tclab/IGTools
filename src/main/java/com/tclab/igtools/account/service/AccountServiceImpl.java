@@ -6,6 +6,8 @@ import com.tclab.igtools.account.repository.AccountRepository;
 import com.tclab.igtools.account.specification.AccountSearchSpecification;
 import com.tclab.igtools.commons.dto.ResponseDto;
 import com.tclab.igtools.commons.dto.ResultPage;
+import java.util.List;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -51,6 +53,18 @@ public class AccountServiceImpl implements AccountService{
   @Override
   public AccountDto findById(Long igBusinessAccountId) {
     return AccountDto.fromAccount(accountRepository.getAccountByIgBusinessAccountId(igBusinessAccountId));
+  }
+
+  @Override
+  public List<AccountDto> findByType(String type) {
+    return accountRepository.getAccountByType(type).stream().map(AccountDto::fromAccount).collect(
+        Collectors.toList());
+  }
+
+  @Override
+  public List<AccountDto> findAll() {
+    return accountRepository.findAll().stream().map(AccountDto::fromAccount).collect(
+        Collectors.toList());
   }
 
   @Override
