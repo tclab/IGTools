@@ -3,6 +3,7 @@ package com.tclab.igtools.account.service;
 import com.tclab.igtools.account.dto.AccountDto;
 import com.tclab.igtools.commons.dto.ResponseDto;
 import com.tclab.igtools.commons.dto.ResultPage;
+import java.util.List;
 
 public interface AccountService {
 
@@ -15,5 +16,9 @@ public interface AccountService {
   ResponseDto deleteAccount(String username);
 
   AccountDto findById(Long igBusinessAccountId);
+
+  List<AccountDto> findByType(String type);
+
+  List<AccountDto> findAll();
 
 }
