@@ -8,6 +8,7 @@ public interface MediaService {
 
   MediaResponseDto post(Long igBusinessAccountId);
   MediaResponseDto postResource(PostDto postDto) throws Exception;
+  MediaResponseDto hydrate(HydrateMediaDto igGetMediaDto) throws Exception;
   MediaResponseDto hydratePostRepo(HydrateMediaDto igGetMediaDto) throws Exception;
 
 }
