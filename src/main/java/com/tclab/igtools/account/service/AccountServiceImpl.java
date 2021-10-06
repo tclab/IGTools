@@ -62,6 +62,11 @@ public class AccountServiceImpl implements AccountService{
   }
 
   @Override
+  public AccountDto findByUsername(String username) {
+    return AccountDto.fromAccount(accountRepository.getAccountByUsername(username));
+  }
+
+  @Override
   public List<AccountDto> findAll() {
     return accountRepository.findAll().stream().map(AccountDto::fromAccount).collect(
         Collectors.toList());

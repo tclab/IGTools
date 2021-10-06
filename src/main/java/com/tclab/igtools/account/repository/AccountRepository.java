@@ -11,5 +11,6 @@ public interface AccountRepository extends JpaRepository<Account, String>, JpaSp
 
   Account getAccountByIgBusinessAccountId(Long igBusinessAccountId);
   List<Account> getAccountByType(String type);
+  Account getAccountByUsername(String username);
 
 }

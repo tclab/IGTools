@@ -7,6 +7,8 @@ import com.tclab.igtools.commons.slack.dto.SlackCommandDto;
 import com.tclab.igtools.commons.slack.dto.SlackCommandResponseDto;
 import com.tclab.igtools.commons.slack.dto.SlackCommandResponseDto.SlackResponseType;
 import com.tclab.igtools.commons.utils.Utils;
+import com.tclab.igtools.media.dto.HydrateMediaDto;
+import com.tclab.igtools.media.service.MediaService;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -19,6 +21,7 @@ import com.tclab.igtools.account.enumerator.AccountType;
 public class SlackCommand {
 
   private final AccountService accountService;
+  private final MediaService mediaService;
 
   /**
    * Handle Slack commands
@@ -90,27 +93,24 @@ public class SlackCommand {
   private SlackCommandResponseDto hydrate(SlackCommandDto slackCommandDto) {
     String text = slackCommandDto.getText();
     try {
-      // all accounts
+      // hydrate all accounts
       if (Utils.isEmpty(text)) {
-        List<AccountDto> accounts = accountService.findAll();
-        String accs = accounts.stream().map(AccountDto::getUsername)
-            .collect(Collectors.joining("\n-"));
+        mediaService.hydrate(null);
 
         return SlackCommandResponseDto.builder()
-            .text("*Accounts*\n- "+accs)
+            .text("Hydrate process started: all accounts")
             .response_type(SlackResponseType.CHANNEL.getValue())
             .build();
       }
 
       // account per type
       else {
-        AccountType accountType = AccountType.fromValue(text);
-        List<AccountDto> accounts = accountService.findByType(accountType.name());
-        String accs = accounts.stream().map(AccountDto::getUsername)
-            .collect(Collectors.joining("\n-"));
+        AccountDto accountDto = accountService.findByUsername(text);
+        mediaService.hydrate(HydrateMediaDto.builder()
+            .igBusinessAccountId(String.valueOf(accountDto.getIgBusinessAccountId())).build());
 
         return SlackCommandResponseDto.builder()
-            .text("*Accounts*\n- "+accs)
+            .text(String.format("Hydrate process started: %s", text))
             .response_type(SlackResponseType.CHANNEL.getValue())
             .build();
       }

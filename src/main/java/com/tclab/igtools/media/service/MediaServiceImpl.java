@@ -192,9 +192,9 @@ public class MediaServiceImpl implements MediaService {
   }
 
   @Override
-  public MediaResponseDto hydrate(HydrateMediaDto igGetMediaDto) throws Exception {
+  public MediaResponseDto hydrate(HydrateMediaDto igGetMediaDto) {
     // hydrate specified account
-    if (Utils.isNotEmpty(igGetMediaDto.getIgBusinessAccountId())) {
+    if (Objects.nonNull(igGetMediaDto) && Utils.isNotEmpty(igGetMediaDto.getIgBusinessAccountId())) {
       return hydratePostRepo(igGetMediaDto);
     }
 
@@ -202,10 +202,8 @@ public class MediaServiceImpl implements MediaService {
     else {
       List<AccountDto> managedAccounts = accountService.findByType(AccountType.MANAGED.name());
 
-      //TODO: Validate empty list
-      managedAccounts.forEach(accountDto -> {
-        hydratePostRepo(HydrateMediaDto.builder().igBusinessAccountId(String.valueOf(accountDto.getIgBusinessAccountId())).build());
-      });
+      managedAccounts.forEach(accountDto -> hydratePostRepo(HydrateMediaDto.builder()
+          .igBusinessAccountId(String.valueOf(accountDto.getIgBusinessAccountId())).build()));
 
       slackService.send(SlackMessageBuilder.builder()
           .service(serviceName)

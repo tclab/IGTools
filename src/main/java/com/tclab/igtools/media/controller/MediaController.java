@@ -30,8 +30,8 @@ public class MediaController {
   }
 
   @PostMapping("/hydrate")
-  public ResponseEntity<MediaResponseDto> hydratePosts(@RequestBody HydrateMediaDto hydrateMediaDto) throws Exception {
-    return ResponseEntity.ok(igService.hydratePostRepo(hydrateMediaDto));
+  public ResponseEntity<MediaResponseDto> hydratePosts(@RequestBody(required = false) HydrateMediaDto hydrateMediaDto) throws Exception {
+    return ResponseEntity.ok(igService.hydrate(hydrateMediaDto));
   }
 
 }
