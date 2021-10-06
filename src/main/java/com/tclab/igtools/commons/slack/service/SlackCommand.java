@@ -7,6 +7,8 @@ import com.tclab.igtools.commons.slack.dto.SlackCommandDto;
 import com.tclab.igtools.commons.slack.dto.SlackCommandResponseDto;
 import com.tclab.igtools.commons.slack.dto.SlackCommandResponseDto.SlackResponseType;
 import com.tclab.igtools.commons.utils.Utils;
+import com.tclab.igtools.media.dto.HydrateMediaDto;
+import com.tclab.igtools.media.service.MediaService;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -19,6 +21,7 @@ import com.tclab.igtools.account.enumerator.AccountType;
 public class SlackCommand {
 
   private final AccountService accountService;
+  private final MediaService mediaService;
 
   /**
    * Handle Slack commands
@@ -54,24 +57,27 @@ public class SlackCommand {
   private SlackCommandResponseDto account(SlackCommandDto slackCommandDto) {
     String text = slackCommandDto.getText();
     try {
+      // all accounts
       if (Utils.isEmpty(text)) {
         List<AccountDto> accounts = accountService.findAll();
         String accs = accounts.stream().map(AccountDto::getUsername)
             .collect(Collectors.joining("\n-"));
 
         return SlackCommandResponseDto.builder()
-            .text("*Accounts*\n-"+accs)
+            .text("*Accounts*\n- "+accs)
             .response_type(SlackResponseType.CHANNEL.getValue())
             .build();
-      } else {
+      }
 
+      // account per type
+      else {
         AccountType accountType = AccountType.fromValue(text);
         List<AccountDto> accounts = accountService.findByType(accountType.name());
         String accs = accounts.stream().map(AccountDto::getUsername)
             .collect(Collectors.joining("\n-"));
 
         return SlackCommandResponseDto.builder()
-            .text("*Accounts*\n-"+accs)
+            .text("*Accounts*\n- "+accs)
             .response_type(SlackResponseType.CHANNEL.getValue())
             .build();
       }
@@ -85,7 +91,36 @@ public class SlackCommand {
   }
 
   private SlackCommandResponseDto hydrate(SlackCommandDto slackCommandDto) {
-    return null;
+    String text = slackCommandDto.getText();
+    try {
+      // hydrate all accounts
+      if (Utils.isEmpty(text)) {
+        mediaService.hydrate(null);
+
+        return SlackCommandResponseDto.builder()
+            .text("Hydrate process started: all accounts")
+            .response_type(SlackResponseType.CHANNEL.getValue())
+            .build();
+      }
+
+      // account per type
+      else {
+        AccountDto accountDto = accountService.findByUsername(text);
+        mediaService.hydrate(HydrateMediaDto.builder()
+            .igBusinessAccountId(String.valueOf(accountDto.getIgBusinessAccountId())).build());
+
+        return SlackCommandResponseDto.builder()
+            .text(String.format("Hydrate process started: %s", text))
+            .response_type(SlackResponseType.CHANNEL.getValue())
+            .build();
+      }
+
+    } catch (Exception e) {
+      return SlackCommandResponseDto.builder()
+          .text("Error starting hydrate process!")
+          .response_type(SlackResponseType.CHANNEL.getValue())
+          .build();
+    }
   }
 
   private SlackCommandResponseDto post(SlackCommandDto slackCommandDto) {

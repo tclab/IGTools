@@ -21,4 +21,6 @@ public interface AccountService {
 
   List<AccountDto> findAll();
 
+  AccountDto findByUsername(String username);
+
 }

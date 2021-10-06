@@ -2,6 +2,7 @@ package com.tclab.igtools.media.service;
 
 import com.tclab.igtools.account.dto.AccountDto;
 import com.tclab.igtools.account.entity.Account;
+import com.tclab.igtools.account.enumerator.AccountType;
 import com.tclab.igtools.account.service.AccountService;
 import com.tclab.igtools.commons.dto.ResultPage;
 import com.tclab.igtools.commons.igclient.dto.MediaContentResponseDto;
@@ -191,8 +192,34 @@ public class MediaServiceImpl implements MediaService {
   }
 
   @Override
-  public MediaResponseDto hydratePostRepo(HydrateMediaDto hydrateMediaDto) {
+  public MediaResponseDto hydrate(HydrateMediaDto igGetMediaDto) {
+    // hydrate specified account
+    if (Objects.nonNull(igGetMediaDto) && Utils.isNotEmpty(igGetMediaDto.getIgBusinessAccountId())) {
+      return hydratePostRepo(igGetMediaDto);
+    }
 
+    // hydrate all accounts
+    else {
+      List<AccountDto> managedAccounts = accountService.findByType(AccountType.MANAGED.name());
+
+      managedAccounts.forEach(accountDto -> hydratePostRepo(HydrateMediaDto.builder()
+          .igBusinessAccountId(String.valueOf(accountDto.getIgBusinessAccountId())).build()));
+
+      slackService.send(SlackMessageBuilder.builder()
+          .service(serviceName)
+          .type(MessageType.HYDRATE)
+          .message("Hydrate process finish for all managed accounts!!")
+          .build());
+
+      return MediaResponseDto.builder()
+      .status(HttpStatus.OK.value())
+      .message("Hydrate process finished for all managed accounts!!")
+      .build();
+    }
+  }
+
+  @Override
+  public MediaResponseDto hydratePostRepo(HydrateMediaDto hydrateMediaDto) {
     MediaResponseDto igResponseDto = MediaResponseDto.builder().build();
 
     try {
