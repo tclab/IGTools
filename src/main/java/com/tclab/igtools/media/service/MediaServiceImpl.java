@@ -91,7 +91,7 @@ public class MediaServiceImpl implements MediaService {
           .message("Post created!!")
           .account(accountDto.getUsername())
           .igBusinessAccountId(String.valueOf(igBusinessAccountId))
-          .resource(postDto.getUrl())
+//          .resource(postDto.getUrl())
           .build());
 
       // Success response
