@@ -120,7 +120,41 @@ public class SlackCommandServiceImpl implements SlackCommandService {
   }
 
   private SlackCommandResponseDto post(SlackCommandDto slackCommandDto) {
-    return null;
+    String text = slackCommandDto.getText();
+    try {
+      // post to all accounts
+      if (Utils.isEmpty(text)) {
+        log.info("Posting to all accounts...");
+        List<AccountDto> managedAccounts = accountService.findByType(AccountType.MANAGED.name());
+        managedAccounts.forEach(accountDto -> {
+          log.info("Posting for account: {}", accountDto.getUsername());
+          mediaService.post(accountDto.getIgBusinessAccountId());
+        });
+
+        return SlackCommandResponseDto.builder()
+            .text("Post process started for all accounts")
+            .response_type(SlackResponseType.CHANNEL.getValue())
+            .build();
+      }
+
+      // post to a single account
+      else {
+        log.info("Posting to account: {}", text);
+        AccountDto accountDto = accountService.findByUsername(text);
+        mediaService.post(accountDto.getIgBusinessAccountId());
+
+        return SlackCommandResponseDto.builder()
+            .text(String.format("Post process started for account %s", text))
+            .response_type(SlackResponseType.CHANNEL.getValue())
+            .build();
+      }
+
+    } catch (Exception e) {
+      return SlackCommandResponseDto.builder()
+          .text("Error starting post process!")
+          .response_type(SlackResponseType.CHANNEL.getValue())
+          .build();
+    }
   }
 
 
