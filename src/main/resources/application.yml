@@ -1,0 +1,65 @@
+
+spring:
+  application:
+    name: igtools
+    businessName: Common FB features client
+  datasource:
+    url: "jdbc:postgresql://ec2-54-145-188-92.compute-1.amazonaws.com:5432/d6nuqi6avckvaq"
+    username: dlmvmmuribpdse
+    password: ${DATABASE_PSS}
+    driver-class-name: org.postgresql.Driver
+    hibernate:
+      dialect: org.hibernate.dialect.PostgreSQL94Dialect
+  jpa:
+    show-sql: false
+    properties:
+      javax:
+        persistence:
+          schema-generation:
+            scripts:
+              action: none #none, create, drop, drop-and-create
+              create-target: create.sql
+              create-source: metadata
+              drop-target: drop.sql
+              drop-source: metadata
+      hibernate:
+        generate_statistics: false
+        jdbc:
+          batch_size: 5000
+          fetch_size: 5000
+        order_inserts: true
+        order_updates: true
+
+api:
+  graph:
+    name: Graph-Api-Client
+    url: https://graph.facebook.com
+    api-version: v11.0
+    retry:
+      enable: true
+      maxAttempts: 5
+      interval: 1
+  fb-commons:
+    name: Fb-Commons-Api
+    url: http://fb-graph-api-commons.herokuapp.com
+    api-version: v1
+    pss: ${FB_COMMONS_PSS}
+    retry:
+      enable: true
+      maxAttempts: 5
+      interval: 1
+  slack:
+    name: Slack
+    url: https://hooks.slack.com/services
+    api-version: v1
+    pss: ${SLACK_TOKEN}
+    retry:
+      enable: true
+      maxAttempts: 5
+      interval: 1
+
+post:
+  media_count: 1000
+  longevity: 120
+  retries: 20
+  caption: "What do you think❓😉🤔...\r\n.\r\n.\r\n.\r\n🛑Credit unknown, DM for credit or removal (no copyright intended)\r\n.\r\n.\r\n.\r\nFOLLOW 👉@woodwork_passion for more!\r\n.\r\n.\r\n.\r\n#woodworkingprojects #woodworkingtool #woodworkz #woodwork_feature #woodworkings #woodworkingplans #woodworkingisfun #woodworkingfun #woodcraft #woodartist #woodworkingmachinery #woodfired #woodcarving"
