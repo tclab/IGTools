@@ -32,6 +32,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
@@ -190,6 +191,7 @@ public class MediaServiceImpl implements MediaService {
     return postMediaResponseDto;
   }
 
+  @Async("hydrateExecutor")
   @Override
   public MediaResponseDto hydrate(HydrateMediaDto igGetMediaDto) {
     // hydrate specified account
@@ -222,7 +224,7 @@ public class MediaServiceImpl implements MediaService {
 
     try {
       // depurate old data
-      log.info("Depurate old data...");
+      log.info("Cleaning old posts...");
       try {
         postRepository.deleteByTimestampBefore(ZonedDateTime.now().minusDays(longevity));
       } catch (Exception e) {
@@ -268,37 +270,41 @@ public class MediaServiceImpl implements MediaService {
   }
 
   private void processFeedAccountMedia(HydrateMediaDto igGetMediaDto, String graphApiToken, AccountDto accountDto) {
-    log.info("Processing account: {}", accountDto.getUsername());
+    try {
+      log.info("Processing account: {}", accountDto.getUsername());
 
-    Long igBusinessAccountId = Long.valueOf(igGetMediaDto.getIgBusinessAccountId());
-    FieldsParamBuilder fields = FieldsParamBuilder.builder()
-        .username(accountDto.getUsername())
-        .limit(mediaCount)
-        .build();
+      Long igBusinessAccountId = Long.valueOf(igGetMediaDto.getIgBusinessAccountId());
+      FieldsParamBuilder fields = FieldsParamBuilder.builder()
+          .username(accountDto.getUsername())
+          .limit(mediaCount)
+          .build();
 
-    MediaContentResponseDto feedAccountMedia = igFeignService.getMedia(
-        String.valueOf(igGetMediaDto.getIgBusinessAccountId()),
-        graphApiToken,
-        fields.processFieldsParamValue().getFields());
+      MediaContentResponseDto feedAccountMedia = igFeignService.getMedia(
+          String.valueOf(igGetMediaDto.getIgBusinessAccountId()),
+          graphApiToken,
+          fields.processFieldsParamValue().getFields());
 
-    List<Post> allPosts = postRepository.findAll();
-    List<Post> postList = new ArrayList<>();
+      List<Post> allPosts = postRepository.findAll();
+      List<Post> postList = new ArrayList<>();
 
-    if (!CollectionUtils.isEmpty(allPosts)) {
-      Map<Long, Post> postIds = allPosts.stream().collect(Collectors.toMap(Post::getMediaId, Function.identity()));
-      postList = feedAccountMedia.getBusinessDiscovery().getMedia().getData().stream()
-          .filter(data -> !postIds.containsKey(data.getId()) || data.getMedia_type().equals(MediaType.VIDEO.name()) )
-          .filter(data -> Utils.isNotEmpty(data.getMedia_url()))
-          .filter(data -> data.getMedia_type().equals(MediaType.IMAGE.name()) || data.getMedia_type().equals(MediaType.VIDEO.name()))
-          .filter(data -> data.getTimestamp().toInstant().isAfter(ZonedDateTime.now().minusDays(longevity).toInstant()))
-          .filter(data -> data.getLike_count() > 1000)
-          .map(data -> Post.fromData(data, igBusinessAccountId, accountDto.getUsername(), isPosted(postIds, data.getId()), getCreatedTime(postIds, data.getId())))
-          .collect(Collectors.toList());
+      if (!CollectionUtils.isEmpty(allPosts)) {
+        Map<Long, Post> postIds = allPosts.stream().collect(Collectors.toMap(Post::getMediaId, Function.identity()));
+        postList = feedAccountMedia.getBusinessDiscovery().getMedia().getData().stream()
+            .filter(data -> !postIds.containsKey(data.getId()) || data.getMedia_type().equals(MediaType.VIDEO.name()) )
+            .filter(data -> Utils.isNotEmpty(data.getMedia_url()))
+            .filter(data -> data.getMedia_type().equals(MediaType.IMAGE.name()) || data.getMedia_type().equals(MediaType.VIDEO.name()))
+            .filter(data -> data.getTimestamp().toInstant().isAfter(ZonedDateTime.now().minusDays(longevity).toInstant()))
+            .filter(data -> data.getLike_count() > 1000)
+            .map(data -> Post.fromData(data, igBusinessAccountId, accountDto.getUsername(), isPosted(postIds, data.getId()), getCreatedTime(postIds, data.getId())))
+            .collect(Collectors.toList());
+      }
+
+      postRepository.saveAll(postList);
+
+      log.info("... {} post processed for account {}", postList.size(), accountDto.getUsername());
+    } catch (Exception e) {
+      log.error("Something went wrong when hydrating account {} :(", accountDto.getUsername(), e);
     }
-
-    postRepository.saveAll(postList);
-
-    log.info("... {} post processed for account {}", postList.size(), accountDto.getUsername());
   }
 
   // Get the original posted status in case of video content type
