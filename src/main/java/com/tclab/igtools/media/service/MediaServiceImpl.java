@@ -67,13 +67,43 @@ public class MediaServiceImpl implements MediaService {
   private final SlackService slackService;
 
 
+  @Async("postExecutor")
   @Override
   public MediaResponseDto post(Long igBusinessAccountId) {
+
+    // post for specified account
+    if (Objects.nonNull(igBusinessAccountId)) {
+      return handlePostProcess(igBusinessAccountId);
+    }
+
+    // post all managed accounts
+    else {
+      List<AccountDto> managedAccounts = accountService.findByType(AccountType.MANAGED.name());
+      managedAccounts.forEach(accountDto -> {
+        log.info("Posting for account: {}", accountDto.getUsername());
+        handlePostProcess(accountDto.getIgBusinessAccountId());
+      });
+
+      slackService.send(SlackMessageBuilder.builder()
+          .service(serviceName)
+          .type(MessageType.POST)
+          .message("Post process finish for all managed accounts!!")
+          .build());
+
+      return MediaResponseDto.builder()
+          .status(HttpStatus.OK.value())
+          .message("Post process finished for all managed accounts!!")
+          .build();
+    }
+  }
+
+  private MediaResponseDto handlePostProcess(Long igBusinessAccountId) {
     MediaResponseDto igResponseDto = MediaResponseDto.builder().build();
 
     try {
       // Get appropiate post from database (first non-published with most likes)
-      Post post = postRepository.findFirstByPostedAndIgBusinessAccountIdOrderByLikeCountDesc(false, igBusinessAccountId);
+      Post post = postRepository.findFirstByPostedAndIgBusinessAccountIdOrderByLikeCountDesc(false,
+          igBusinessAccountId);
       PostDto postDto = PostDto.fromPost(post,caption);
 
       // Udate posted status in database
@@ -155,7 +185,7 @@ public class MediaServiceImpl implements MediaService {
 
     // Publish the image
     log.info("Publishing resource");
-    MediaPublishResponseDto mediaPublishResponseDto = igFeignService.mediaPublish(
+    igFeignService.mediaPublish(
         postDto.getIgBussinesAccount(), graphApiToken,
         postMediaResponseDto.getCreationId());
 
@@ -203,8 +233,10 @@ public class MediaServiceImpl implements MediaService {
     else {
       List<AccountDto> managedAccounts = accountService.findByType(AccountType.MANAGED.name());
 
-      managedAccounts.forEach(accountDto -> handleHydrateProcess(HydrateMediaDto.builder()
-          .igBusinessAccountId(String.valueOf(accountDto.getIgBusinessAccountId())).build()));
+      managedAccounts.forEach(accountDto -> {
+        log.info("Hydrating posts for account: {}", accountDto.getUsername());
+        handleHydrateProcess(HydrateMediaDto.builder()
+          .igBusinessAccountId(String.valueOf(accountDto.getIgBusinessAccountId())).build());});
 
       slackService.send(SlackMessageBuilder.builder()
           .service(serviceName)
