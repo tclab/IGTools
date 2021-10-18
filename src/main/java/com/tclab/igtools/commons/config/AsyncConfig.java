@@ -23,5 +23,18 @@ public class AsyncConfig {
         executor.initialize();
         return executor;
     }
+
+
+    @Bean(name = "postExecutor")
+    public Executor postExecutor()
+    {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(3);
+        executor.setMaxPoolSize(3);
+        executor.setQueueCapacity(100);
+        executor.setThreadNamePrefix("PostAsyncThread-");
+        executor.initialize();
+        return executor;
+    }
 }
 

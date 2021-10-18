@@ -87,33 +87,33 @@ public class SlackCommandServiceImpl implements SlackCommandService {
   private SlackCommandResponseDto hydrate(SlackCommandDto slackCommandDto) {
     String text = slackCommandDto.getText();
     try {
+      String slackMessage = "";
+      HydrateMediaDto hydrateMediaDto = null;
+
       // hydrate all accounts
       if (Utils.isEmpty(text)) {
         log.info("Hydrating all accounts...");
-        mediaService.hydrate(null);
-
-        return SlackCommandResponseDto.builder()
-            .text("Hydrate process started for all accounts")
-            .response_type(SlackResponseType.CHANNEL.getValue())
-            .build();
+        slackMessage = "Hydrate process started for all accounts";
       }
 
       // account per type
       else {
         log.info("Hydrating account: {}", text);
         AccountDto accountDto = accountService.findByUsername(text);
-        mediaService.hydrate(HydrateMediaDto.builder()
-            .igBusinessAccountId(String.valueOf(accountDto.getIgBusinessAccountId())).build());
-
-        return SlackCommandResponseDto.builder()
-            .text(String.format("Hydrate process started for account %s", text))
-            .response_type(SlackResponseType.CHANNEL.getValue())
-            .build();
+        hydrateMediaDto = HydrateMediaDto.builder()
+            .igBusinessAccountId(String.valueOf(accountDto.getIgBusinessAccountId())).build();
+        slackMessage = String.format("Hydrate process started for account %s", text);
       }
+
+      mediaService.hydrate(hydrateMediaDto);
+      return SlackCommandResponseDto.builder()
+          .text(slackMessage)
+          .response_type(SlackResponseType.CHANNEL.getValue())
+          .build();
 
     } catch (Exception e) {
       return SlackCommandResponseDto.builder()
-          .text("Error starting hydrate process!")
+          .text(String.format("Error starting hydrate process!. SlackCommnadDto: %s", slackCommandDto))
           .response_type(SlackResponseType.CHANNEL.getValue())
           .build();
     }
@@ -122,36 +122,32 @@ public class SlackCommandServiceImpl implements SlackCommandService {
   private SlackCommandResponseDto post(SlackCommandDto slackCommandDto) {
     String text = slackCommandDto.getText();
     try {
+      String slackMessage = "";
+      Long igBusinessAccountId = null;
+
       // post to all accounts
       if (Utils.isEmpty(text)) {
         log.info("Posting to all accounts...");
-        List<AccountDto> managedAccounts = accountService.findByType(AccountType.MANAGED.name());
-        managedAccounts.forEach(accountDto -> {
-          log.info("Posting for account: {}", accountDto.getUsername());
-          mediaService.post(accountDto.getIgBusinessAccountId());
-        });
-
-        return SlackCommandResponseDto.builder()
-            .text("Post process started for all accounts")
-            .response_type(SlackResponseType.CHANNEL.getValue())
-            .build();
+        slackMessage = "Post process started for all accounts";
       }
 
       // post to a single account
       else {
         log.info("Posting to account: {}", text);
         AccountDto accountDto = accountService.findByUsername(text);
-        mediaService.post(accountDto.getIgBusinessAccountId());
-
-        return SlackCommandResponseDto.builder()
-            .text(String.format("Post process started for account %s", text))
-            .response_type(SlackResponseType.CHANNEL.getValue())
-            .build();
+        igBusinessAccountId = accountDto.getIgBusinessAccountId();
+        slackMessage = String.format("Post process started for account %s", text);
       }
+
+      mediaService.post(igBusinessAccountId);
+      return SlackCommandResponseDto.builder()
+          .text(slackMessage)
+          .response_type(SlackResponseType.CHANNEL.getValue())
+          .build();
 
     } catch (Exception e) {
       return SlackCommandResponseDto.builder()
-          .text("Error starting post process!")
+          .text(String.format("Error starting post process!. SlackCommandDto: %s", slackCommandDto))
           .response_type(SlackResponseType.CHANNEL.getValue())
           .build();
     }
